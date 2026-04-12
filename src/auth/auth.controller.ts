@@ -1,0 +1,29 @@
+import { Controller, Get, Post, Body, Request } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { Public } from './decorators/public.decorators';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
+import { Roles } from './decorators/roles.decorators';
+
+@Controller({ path: 'auth', version: '1' })
+export class AuthController {
+  constructor(private readonly authService: AuthService) {}
+
+  @Public()
+  @Post('register')
+  register(@Body() registerDto: RegisterDto) {
+    return this.authService.register(registerDto);
+  }
+
+  @Public()
+  @Post('login')
+  login(@Body() loginDto: LoginDto) {
+    return this.authService.login(loginDto);
+  }
+
+  @Roles('ADMIN', 'CUSTOMER')
+  @Get('profile')
+  getProfile(@Request() req: any) {
+    return req.user;
+  }
+}

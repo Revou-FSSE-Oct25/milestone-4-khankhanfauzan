@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAW
+  TRANSFER
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  password  String
+  name      String
+  role      Role      @default(CUSTOMER)
+  accounts  Account[]
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  hashedRefreshToken String? @map("hased_refresh_token")
+
+  @@map("users")
+}
+
+model Account {
+  id                   Int           @id @default(autoincrement())
+  accountNumber        String        @unique
+  balance              Decimal       @default(0.0)
+  userId               Int           @map("user_id")
+  user                 User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sentTransactions     Transaction[] @relation("FromAccount")
+  receivedTransactions Transaction[] @relation("ToAccount")
+  createdAt            DateTime      @default(now()) @map("created_at")
+  updatedAt            DateTime      @updatedAt @map("updated_at")
+
+  @@map("accounts")
+}
+
+model Transaction {
+  id            Int             @id @default(autoincrement())
+  type          TransactionType
+  amount        Decimal
+  fromAccountId Int?            @map("from_account_id")
+  fromAccount   Account?        @relation("FromAccount", fields: [fromAccountId], references: [id])
+  toAccountId   Int?            @map("to_account_id")
+  toAccount     Account?        @relation("ToAccount", fields: [toAccountId], references: [id])
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+
+  @@index([fromAccountId])
+  @@index([toAccountId])
+  @@map("transactions")
+}
