@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -18,7 +19,7 @@ export class AuthService {
     private jwtServices: JwtService,
     private config: ConfigService,
     private readonly authRepository: AuthRepository,
-  ) {}
+  ) { }
 
   // Register user baru: cek email unik, hash password, simpan user, lalu kembalikan access token.
   async register(registerDto: RegisterDto) {
@@ -38,11 +39,11 @@ export class AuthService {
       password: hashedPassword,
     });
 
-    const payload = { sub: user.id, email: user.email, role: user.role };
 
-    return {
-      access_token: this.jwtServices.sign(payload),
-    };
+    const tokens = await this.getTokens(user.id, user.email, user.role);
+    await this.updateRefreshToken(user.id, tokens.refresh_token);
+    return tokens;
+
   }
 
   // Login user: validasi kredensial dan hasilkan access token berbasis role.
@@ -68,14 +69,58 @@ export class AuthService {
       role: user.role,
     };
 
-    return { access_token: this.jwtServices.sign(payload) };
+
+    const tokens = await this.getTokens(user.id, user.email, user.role);
+    await this.updateRefreshToken(user.id, tokens.refresh_token);
+    return tokens;
   }
 
-  async logout() {}
+  async logout(userId: number) {
+    await this.authRepository.updateUserAll(userId);
 
-  async refreshTokens() {}
+    return {
+      message: 'Successfully logged out'
+    }
+  }
 
-  async getTokens() {}
+  async refreshTokens(userId: number, rt: string) {
+    const user = await this.authRepository.findUserByUserId(userId);
 
-  async updateRefreshToken() {}
+    if (!user || !user.hashedRefreshToken) {
+      throw new ForbiddenException('Access Denied');
+    }
+
+    const rtMatches = await bcrypt.compare(rt, user.hashedRefreshToken);
+
+    if (!rtMatches) {
+      throw new ForbiddenException('Access Denied');
+    }
+
+    const tokens = await this.getTokens(user.id, user.email, user.role);
+    await this.updateRefreshToken(user.id, tokens.refresh_token);
+    return tokens;
+  }
+
+  async getTokens(userId: number, email: string, role: string) {
+    const payload = { sub: userId, email, role };
+
+    const [at, rt] = await Promise.all([
+      this.jwtServices.signAsync(payload, {
+        secret: this.config.get<string>('JWT_SECRET'), expiresIn: '15m'
+      }),
+      this.jwtServices.signAsync(payload, {
+        secret: this.config.get<string>('JWT_REFRESH_SECRET', 'refresh-secret'),
+      }),
+    ]);
+
+    return {
+      access_token: at,
+      refresh_token: rt,
+    }
+  }
+
+  async updateRefreshToken(userId: number, rt: string) {
+    const hash = await bcrypt.hash(rt, 10);
+    return this.authRepository.updateUser(userId, hash);
+  }
 }
