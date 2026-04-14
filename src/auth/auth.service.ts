@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
@@ -15,7 +14,6 @@ import { AuthRepository } from './auth.repository';
 @Injectable()
 export class AuthService {
   constructor(
-    private prisma: PrismaService,
     private jwtServices: JwtService,
     private config: ConfigService,
     private readonly authRepository: AuthRepository,
@@ -63,13 +61,6 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const payload = {
-      sub: user.id,
-      email: user.email,
-      role: user.role,
-    };
-
-
     const tokens = await this.getTokens(user.id, user.email, user.role);
     await this.updateRefreshToken(user.id, tokens.refresh_token);
     return tokens;
@@ -84,6 +75,10 @@ export class AuthService {
   }
 
   async refreshTokens(userId: number, rt: string) {
+    if (!rt) {
+      throw new ForbiddenException('Access Denied');
+    }
+
     const user = await this.authRepository.findUserByUserId(userId);
 
     if (!user || !user.hashedRefreshToken) {
@@ -106,7 +101,8 @@ export class AuthService {
 
     const [at, rt] = await Promise.all([
       this.jwtServices.signAsync(payload, {
-        secret: this.config.get<string>('JWT_SECRET'), expiresIn: '15m'
+        secret: this.config.get<string>('JWT_SECRET'),
+        expiresIn: '15m',
       }),
       this.jwtServices.signAsync(payload, {
         secret: this.config.get<string>('JWT_REFRESH_SECRET', 'refresh-secret'),
@@ -116,7 +112,7 @@ export class AuthService {
     return {
       access_token: at,
       refresh_token: rt,
-    }
+    };
   }
 
   async updateRefreshToken(userId: number, rt: string) {
