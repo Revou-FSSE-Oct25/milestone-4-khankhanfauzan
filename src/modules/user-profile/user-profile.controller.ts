@@ -1,42 +1,33 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Request } from '@nestjs/common';
 import { UserProfileService } from './user-profile.service';
-import { CreateUserProfileDto } from './dto/create-user-profile.dto';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
+import { Roles } from 'src/auth/decorators/roles.decorators';
 
-@Controller('user')
+type AuthenticatedRequest = {
+  user: {
+    id?: number;
+    sub?: number;
+  };
+};
+
+@Controller({ path: 'user', version: '1' })
 export class UserProfileController {
   constructor(private readonly userProfileService: UserProfileService) { }
 
-  @Post()
-  create(@Body() createUserProfileDto: CreateUserProfileDto) {
-    return this.userProfileService.create(createUserProfileDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.userProfileService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userProfileService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserProfileDto: UpdateUserProfileDto) {
-    return this.userProfileService.update(+id, updateUserProfileDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userProfileService.remove(+id);
-  }
-
-
-  // Profile
-
+  @Roles('ADMIN', 'CUSTOMER')
   @Get('profile')
-  getProfile() {
-    return this.userProfileService.findAll();
+  getProfile(@Request() req: AuthenticatedRequest) {
+    const userId = Number(req.user.id ?? req.user.sub);
+    return this.userProfileService.getOwnProfile(userId);
+  }
+
+  @Roles('ADMIN', 'CUSTOMER')
+  @Patch('profile')
+  updateProfile(
+    @Request() req: AuthenticatedRequest,
+    @Body() updateUserProfileDto: UpdateUserProfileDto,
+  ) {
+    const userId = Number(req.user.id ?? req.user.sub);
+    return this.userProfileService.updateOwnProfile(userId, updateUserProfileDto);
   }
 }

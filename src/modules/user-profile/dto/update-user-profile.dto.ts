@@ -1,4 +1,17 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateUserProfileDto } from './create-user-profile.dto';
+import { IsDateString, IsOptional, IsString, MaxLength } from 'class-validator';
 
-export class UpdateUserProfileDto extends PartialType(CreateUserProfileDto) {}
+export class UpdateUserProfileDto {
+    @IsOptional()
+    @IsString()
+    @MaxLength(100)
+    name?: string;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(25)
+    phoneNumber?: string;
+
+    @IsOptional()
+    @IsDateString()
+    dateOfBirth?: string;
+}

@@ -1,26 +1,21 @@
-import { Injectable } from '@nestjs/common';
-import { CreateUserProfileDto } from './dto/create-user-profile.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
+import { UserProfileRepository } from './user-profile.repository';
 
 @Injectable()
 export class UserProfileService {
-  create(createUserProfileDto: CreateUserProfileDto) {
-    return 'This action adds a new userProfile';
+  constructor(private readonly userProfileRepository: UserProfileRepository) {}
+
+  async getOwnProfile(userId: number) {
+    const user = await this.userProfileRepository.findUserWithProfileById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
   }
 
-  findAll() {
-    return `This action returns all userProfile`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} userProfile`;
-  }
-
-  update(id: number, updateUserProfileDto: UpdateUserProfileDto) {
-    return `This action updates a #${id} userProfile`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} userProfile`;
+  async updateOwnProfile(userId: number, updateUserProfileDto: UpdateUserProfileDto) {
+    await this.getOwnProfile(userId);
+    return this.userProfileRepository.updateSelfProfile(userId, updateUserProfileDto);
   }
 }

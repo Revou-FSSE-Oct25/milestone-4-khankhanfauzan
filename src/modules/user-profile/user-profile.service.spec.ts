@@ -1,12 +1,22 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserProfileService } from './user-profile.service';
+import { UserProfileRepository } from './user-profile.repository';
 
 describe('UserProfileService', () => {
   let service: UserProfileService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [UserProfileService],
+      providers: [
+        UserProfileService,
+        {
+          provide: UserProfileRepository,
+          useValue: {
+            findUserWithProfileById: jest.fn(),
+            updateSelfProfile: jest.fn(),
+          },
+        },
+      ],
     }).compile();
 
     service = module.get<UserProfileService>(UserProfileService);
