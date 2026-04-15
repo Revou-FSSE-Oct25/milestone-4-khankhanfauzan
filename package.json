@@ -8,7 +8,7 @@
   "scripts": {
     "postinstall": "prisma generate --schema prisma/schema.prisma",
     "prebuild": "prisma generate --schema prisma/schema.prisma",
-    "build": "nest build",
+    "build": "prisma generate --schema prisma/schema.prisma && nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "prisma:generate": "prisma generate --schema prisma/schema.prisma",
     "prisma:seed": "prisma db seed",
