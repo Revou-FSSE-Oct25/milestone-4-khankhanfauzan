@@ -91,6 +91,61 @@ Semua response mengikuti format global envelope.
 └── package.json
 ```
 
+## Screenshots (Postman & Swagger)
+
+- Postman: ![Postman](./assets/postman.png)
+- Swagger: ![Swagger](./assets/swagger.png)
+
+## Database ER Diagram (Mermaid)
+
+```mermaid
+erDiagram
+    User {
+        Int id PK
+        String email UK
+        String password
+        String name
+        Role role
+        DateTime createdAt
+        DateTime updatedAt
+        String hashedRefreshToken "nullable"
+    }
+
+    UserProfile {
+        Int id PK
+        Int userId FK, UK
+        String phoneNumber UK "nullable"
+        DateTime dateOfBirth "nullable"
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    Account {
+        Int id PK
+        String accountNumber UK
+        Decimal balance
+        Int userId FK
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    Transaction {
+        Int id PK
+        TransactionType type
+        Decimal amount
+        Int fromAccountId FK "nullable"
+        Int toAccountId FK "nullable"
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    %% Relationships
+    User ||--o| UserProfile : "has (profile)"
+    User ||--o{ Account : "owns (accounts)"
+    Account ||--o{ Transaction : "sends (FromAccount)"
+    Account ||--o{ Transaction : "receives (ToAccount)"
+```
+
 ## Module Overview, DTO, dan Flow
 
 ### 1. Auth Module
