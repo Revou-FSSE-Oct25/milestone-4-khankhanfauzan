@@ -20,6 +20,8 @@ API ini melayani 2 jenis pengguna:
 
 - Base URL local: `http://localhost:9000/api/v1`
 - Swagger UI: `http://localhost:9000/docs`
+- Base URL production (Railway): `https://milestone-4-khankhanfauzan-production.up.railway.app/api/v1`
+- Swagger UI production (Railway): `https://milestone-4-khankhanfauzan-production.up.railway.app/docs`
 
 ## Standard Response Envelope
 
