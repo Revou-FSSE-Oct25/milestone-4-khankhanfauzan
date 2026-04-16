@@ -28,7 +28,7 @@ type RequestWithUser = {
 @ApiBearerAuth()
 @Controller({ path: 'transactions', version: '1' })
 export class TransactionsController {
-  constructor(private readonly transactionsService: TransactionsService) { }
+  constructor(private readonly transactionsService: TransactionsService) {}
 
   @Roles('ADMIN', 'CUSTOMER')
   @ApiOperation({ summary: 'Deposit funds into an account' })

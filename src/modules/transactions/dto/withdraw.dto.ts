@@ -4,7 +4,8 @@ import { IsInt, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class WithdrawDto {
   @ApiPropertyOptional({
-    description: 'Source account ID for the withdrawal (use this or fromAccountNumber)',
+    description:
+      'Source account ID for the withdrawal (use this or fromAccountNumber)',
     example: 10,
   })
   @IsOptional()

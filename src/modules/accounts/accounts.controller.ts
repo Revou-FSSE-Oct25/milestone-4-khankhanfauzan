@@ -8,7 +8,7 @@ import {
   Delete,
   Req,
   Request,
-  ParseIntPipe
+  ParseIntPipe,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -22,28 +22,31 @@ import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
 import { Roles } from 'src/auth/decorators/roles.decorators';
 
-
 interface RequestWithUser extends Request {
-  user: { id: number; role: string; };
+  user: { id: number; role: string };
 }
 
 @ApiTags('Accounts')
 @ApiBearerAuth()
 @Controller({ path: 'accounts', version: '1' })
 export class AccountsController {
-  constructor(private readonly accountsService: AccountsService) { }
-
+  constructor(private readonly accountsService: AccountsService) {}
 
   @Roles('ADMIN', 'CUSTOMER')
   @ApiOperation({ summary: 'Create account for authenticated user' })
   @ApiBody({ type: CreateAccountDto })
   @Post()
-  create(@Req() req: RequestWithUser, @Body() createAccountDto: CreateAccountDto) {
+  create(
+    @Req() req: RequestWithUser,
+    @Body() createAccountDto: CreateAccountDto,
+  ) {
     return this.accountsService.create(req.user.id, createAccountDto);
   }
 
   @Roles('ADMIN', 'CUSTOMER')
-  @ApiOperation({ summary: 'List accounts (admin sees all, customer sees own)' })
+  @ApiOperation({
+    summary: 'List accounts (admin sees all, customer sees own)',
+  })
   @Get()
   findAll(@Req() req: RequestWithUser) {
     return this.accountsService.findAll(req.user.id, req.user.role);
@@ -62,7 +65,10 @@ export class AccountsController {
   @ApiParam({ name: 'id', type: Number, example: 1 })
   @ApiBody({ type: UpdateAccountDto })
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateAccountDto: UpdateAccountDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateAccountDto: UpdateAccountDto,
+  ) {
     return this.accountsService.update(id, updateAccountDto);
   }
 

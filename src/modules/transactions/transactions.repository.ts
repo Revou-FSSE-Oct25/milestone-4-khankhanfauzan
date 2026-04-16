@@ -41,10 +41,7 @@ export class TransactionsRepository {
   findTransactionsByUserId(userId: number) {
     return this.prisma.transaction.findMany({
       where: {
-        OR: [
-          { fromAccount: { userId } },
-          { toAccount: { userId } },
-        ],
+        OR: [{ fromAccount: { userId } }, { toAccount: { userId } }],
       },
       include: {
         fromAccount: true,
@@ -54,7 +51,10 @@ export class TransactionsRepository {
     });
   }
 
-  async createDeposit(params: { toAccountId: number; amount: number }): Promise<Transaction> {
+  async createDeposit(params: {
+    toAccountId: number;
+    amount: number;
+  }): Promise<Transaction> {
     return this.prisma.$transaction(async (tx) => {
       await tx.account.update({
         where: { id: params.toAccountId },

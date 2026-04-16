@@ -31,13 +31,14 @@ import { Roles } from 'src/auth/decorators/roles.decorators';
 @ApiBearerAuth()
 @Controller({ path: 'users', version: '1' })
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
+  constructor(private readonly usersService: UsersService) {}
 
   @Roles('ADMIN')
   @ApiOperation({ summary: 'Create user record' })
   @ApiBody({ type: CreateUserDto })
   @ApiCreatedResponse({
-    description: 'User created successfully (password and refresh token are excluded)',
+    description:
+      'User created successfully (password and refresh token are excluded)',
   })
   @ApiBadRequestResponse({ description: 'Validation failed' })
   @ApiConflictResponse({ description: 'Email already in use' })
@@ -83,14 +84,18 @@ export class UsersController {
     description: 'User updated successfully (sensitive fields are excluded)',
   })
   @ApiBadRequestResponse({
-    description: 'Invalid user ID format, validation failed, or empty update payload',
+    description:
+      'Invalid user ID format, validation failed, or empty update payload',
   })
   @ApiConflictResponse({ description: 'Email already in use' })
   @ApiNotFoundResponse({ description: 'User not found' })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
   @ApiForbiddenResponse({ description: 'Admin role required' })
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateUserDto: UpdateUserDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
     return this.usersService.update(id, updateUserDto);
   }
 

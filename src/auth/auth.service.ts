@@ -17,7 +17,7 @@ export class AuthService {
     private jwtServices: JwtService,
     private config: ConfigService,
     private readonly authRepository: AuthRepository,
-  ) { }
+  ) {}
 
   // Register user baru: cek email unik, hash password, simpan user, lalu kembalikan access token.
   async register(registerDto: RegisterDto) {
@@ -37,11 +37,9 @@ export class AuthService {
       password: hashedPassword,
     });
 
-
     const tokens = await this.getTokens(user.id, user.email, user.role);
     await this.updateRefreshToken(user.id, tokens.refresh_token);
     return tokens;
-
   }
 
   // Login user: validasi kredensial dan hasilkan access token berbasis role.
@@ -70,8 +68,8 @@ export class AuthService {
     await this.authRepository.updateUserAll(userId);
 
     return {
-      message: 'Successfully logged out'
-    }
+      message: 'Successfully logged out',
+    };
   }
 
   async refreshTokens(userId: number, rt: string) {

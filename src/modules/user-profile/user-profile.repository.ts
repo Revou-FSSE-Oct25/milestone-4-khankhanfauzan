@@ -3,7 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class UserProfileRepository {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   findUserWithProfileById(userId: number) {
     return this.prisma.user.findUnique({
@@ -39,7 +39,10 @@ export class UserProfileRepository {
         });
       }
 
-      if (payload.phoneNumber !== undefined || payload.dateOfBirth !== undefined) {
+      if (
+        payload.phoneNumber !== undefined ||
+        payload.dateOfBirth !== undefined
+      ) {
         await tx.userProfile.upsert({
           where: { userId },
           create: {
@@ -55,10 +58,10 @@ export class UserProfileRepository {
               : {}),
             ...(payload.dateOfBirth !== undefined
               ? {
-                dateOfBirth: payload.dateOfBirth
-                  ? new Date(payload.dateOfBirth)
-                  : null,
-              }
+                  dateOfBirth: payload.dateOfBirth
+                    ? new Date(payload.dateOfBirth)
+                    : null,
+                }
               : {}),
           },
         });

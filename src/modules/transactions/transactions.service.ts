@@ -11,7 +11,9 @@ import { TransferDto } from './dto/transfer.dto';
 
 @Injectable()
 export class TransactionsService {
-  constructor(private readonly transactionsRepository: TransactionsRepository) { }
+  constructor(
+    private readonly transactionsRepository: TransactionsRepository,
+  ) {}
 
   private async resolveAccount(input: {
     accountId?: number;
@@ -28,16 +30,20 @@ export class TransactionsService {
     }
 
     const account = hasId
-      ? await this.transactionsRepository.findAccountById(Number(input.accountId))
+      ? await this.transactionsRepository.findAccountById(
+          Number(input.accountId),
+        )
       : await this.transactionsRepository.findAccountByAccountNumber(
-        String(input.accountNumber),
-      );
+          String(input.accountNumber),
+        );
 
     if (!account) {
       const identifier = hasId
         ? `ID ${input.accountId}`
         : `account number ${input.accountNumber}`;
-      throw new NotFoundException(`${input.label} account with ${identifier} not found`);
+      throw new NotFoundException(
+        `${input.label} account with ${identifier} not found`,
+      );
     }
 
     return account;
@@ -49,7 +55,9 @@ export class TransactionsService {
     requesterRole: string,
   ) {
     if (requesterRole !== 'ADMIN' && accountUserId !== requesterUserId) {
-      throw new ForbiddenException('You are not allowed to access this account');
+      throw new ForbiddenException(
+        'You are not allowed to access this account',
+      );
     }
   }
 
@@ -137,7 +145,8 @@ export class TransactionsService {
   }
 
   async findOne(id: number, userId: number, role: string) {
-    const transaction = await this.transactionsRepository.findTransactionById(id);
+    const transaction =
+      await this.transactionsRepository.findTransactionById(id);
     if (!transaction) {
       throw new NotFoundException(`Transaction with ID ${id} not found`);
     }
@@ -146,7 +155,9 @@ export class TransactionsService {
       const fromUserId = transaction.fromAccount?.userId;
       const toUserId = transaction.toAccount?.userId;
       if (fromUserId !== userId && toUserId !== userId) {
-        throw new ForbiddenException('You are not allowed to access this transaction');
+        throw new ForbiddenException(
+          'You are not allowed to access this transaction',
+        );
       }
     }
 

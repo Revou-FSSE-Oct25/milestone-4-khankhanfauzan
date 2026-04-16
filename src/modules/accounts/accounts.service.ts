@@ -1,11 +1,16 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
 import { AccountsRepository } from './accounts.repository';
 
 @Injectable()
 export class AccountsService {
-  constructor(private readonly accountsRepository: AccountsRepository) { }
+  constructor(private readonly accountsRepository: AccountsRepository) {}
 
   async create(userId: number, createAccountDto: CreateAccountDto) {
     try {
@@ -37,7 +42,9 @@ export class AccountsService {
 
     // Pengecekan kepemilikan
     if (account.userId !== userId && role !== 'ADMIN') {
-      throw new ForbiddenException('You are not allowed to access this account');
+      throw new ForbiddenException(
+        'You are not allowed to access this account',
+      );
     }
 
     return account;
@@ -52,7 +59,9 @@ export class AccountsService {
 
     // Aturan Bisnis: Nomor rekening tidak boleh diubah
     if (updateAccountDto.accountNumber) {
-      throw new BadRequestException('Account number cannot be modified once created');
+      throw new BadRequestException(
+        'Account number cannot be modified once created',
+      );
     }
 
     return this.accountsRepository.updateAccount(id, updateAccountDto);

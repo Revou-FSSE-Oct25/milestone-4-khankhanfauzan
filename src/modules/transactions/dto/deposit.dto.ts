@@ -4,7 +4,8 @@ import { IsInt, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class DepositDto {
   @ApiPropertyOptional({
-    description: 'Destination account ID for the deposit (use this or toAccountNumber)',
+    description:
+      'Destination account ID for the deposit (use this or toAccountNumber)',
     example: 10,
   })
   @IsOptional()
