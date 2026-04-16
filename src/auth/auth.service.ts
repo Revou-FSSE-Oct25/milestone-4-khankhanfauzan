@@ -17,7 +17,15 @@ export class AuthService {
     private jwtServices: JwtService,
     private config: ConfigService,
     private readonly authRepository: AuthRepository,
-  ) {}
+  ) { }
+
+  private getRequiredEnv(name: string): string {
+    const value = this.config.get<string>(name);
+    if (!value) {
+      throw new UnauthorizedException(`${name} is not configured`);
+    }
+    return value;
+  }
 
   // Register user baru: cek email unik, hash password, simpan user, lalu kembalikan access token.
   async register(registerDto: RegisterDto) {
@@ -96,14 +104,16 @@ export class AuthService {
 
   async getTokens(userId: number, email: string, role: string) {
     const payload = { sub: userId, email, role };
+    const jwtSecret = this.getRequiredEnv('JWT_SECRET');
+    const jwtRefreshSecret = this.getRequiredEnv('JWT_REFRESH_SECRET');
 
     const [at, rt] = await Promise.all([
       this.jwtServices.signAsync(payload, {
-        secret: this.config.get<string>('JWT_SECRET'),
+        secret: jwtSecret,
         expiresIn: '15m',
       }),
       this.jwtServices.signAsync(payload, {
-        secret: this.config.get<string>('JWT_REFRESH_SECRET', 'refresh-secret'),
+        secret: jwtRefreshSecret,
       }),
     ]);
 

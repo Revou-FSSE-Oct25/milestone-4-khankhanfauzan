@@ -9,6 +9,14 @@ const pool = new Pool({ connectionString });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
+function getRequiredEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`${name} is required for seeding`);
+  }
+  return value;
+}
+
 async function upsertUser(params: {
   email: string;
   name: string;
@@ -35,16 +43,16 @@ async function upsertUser(params: {
 
 async function main() {
   await upsertUser({
-    email: process.env.SEED_ADMIN_EMAIL ?? 'admin@example.com',
-    name: process.env.SEED_ADMIN_NAME ?? 'Test Admin',
-    password: process.env.SEED_ADMIN_PASSWORD ?? '12345678',
+    email: getRequiredEnv('SEED_ADMIN_EMAIL'),
+    name: getRequiredEnv('SEED_ADMIN_NAME'),
+    password: getRequiredEnv('SEED_ADMIN_PASSWORD'),
     role: Role.ADMIN,
   });
 
   await upsertUser({
-    email: process.env.SEED_CUSTOMER_EMAIL ?? 'customer@example.com',
-    name: process.env.SEED_CUSTOMER_NAME ?? 'Test Customer',
-    password: process.env.SEED_CUSTOMER_PASSWORD ?? '12345678',
+    email: getRequiredEnv('SEED_CUSTOMER_EMAIL'),
+    name: getRequiredEnv('SEED_CUSTOMER_NAME'),
+    password: getRequiredEnv('SEED_CUSTOMER_PASSWORD'),
     role: Role.CUSTOMER,
   });
 }
