@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma, Transaction, TransactionType } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class TransactionsRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   findAccountById(accountId: number) {
     return this.prisma.account.findUnique({
@@ -80,14 +80,24 @@ export class TransactionsRepository {
     amount: number;
   }): Promise<Transaction> {
     return this.prisma.$transaction(async (tx) => {
-      await tx.account.update({
-        where: { id: params.fromAccountId },
-        data: {
-          balance: {
-            decrement: params.amount,
+      const debitResult =
+        await tx.account.updateMany({
+          where: {
+            id: params.fromAccountId,
+            balance: {
+              gte: params.amount,
+            }
           },
-        },
-      });
+          data: {
+            balance: {
+              decrement: params.amount,
+            },
+          },
+        });
+
+      if (debitResult.count === 0) {
+        throw new BadRequestException('Insufficient balance');
+      }
 
       return tx.transaction.create({
         data: {
@@ -105,14 +115,23 @@ export class TransactionsRepository {
     amount: number;
   }): Promise<Transaction> {
     return this.prisma.$transaction(async (tx) => {
-      await tx.account.update({
-        where: { id: params.fromAccountId },
+      const debitResult = await tx.account.updateMany({
+        where: {
+          id: params.fromAccountId,
+          balance: {
+            gte: params.amount,
+          }
+        },
         data: {
           balance: {
             decrement: params.amount,
           },
         },
       });
+
+      if (debitResult.count === 0) {
+        throw new BadRequestException('Insufficient balance');
+      }
 
       await tx.account.update({
         where: { id: params.toAccountId },
