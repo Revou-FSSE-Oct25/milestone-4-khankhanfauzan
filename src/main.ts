@@ -37,7 +37,6 @@ async function bootstrap() {
       'Secure banking API for RevoBank: customers view balances and transfers; admins manage users, accounts, and transactions.',
     )
     .setVersion('1.1')
-    .addTag('products')
     .addApiKey({ type: 'apiKey', name: 'x-api-key', in: 'header' }, 'x-api-key')
     .build();
 

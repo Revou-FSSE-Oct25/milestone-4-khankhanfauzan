@@ -28,7 +28,7 @@ model User {
   createdAt DateTime     @default(now()) @map("created_at")
   updatedAt DateTime     @updatedAt @map("updated_at")
 
-  hashedRefreshToken String? @map("hased_refresh_token")
+  hashedRefreshToken String? @map("hashed_refresh_token")
 
   @@map("users")
 }

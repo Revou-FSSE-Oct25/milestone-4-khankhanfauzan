@@ -11,6 +11,8 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { AuthRepository } from './auth.repository';
 
+type JwtExpiresIn = number | `${number}${'ms' | 's' | 'm' | 'h' | 'd' | 'w' | 'y'}`;
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -25,6 +27,14 @@ export class AuthService {
       throw new UnauthorizedException(`${name} is not configured`);
     }
     return value;
+  }
+
+  private getJwtExpiration(): JwtExpiresIn {
+    const raw = this.getRequiredEnv('JWT_EXPIRATION').trim();
+    if (/^\d+$/.test(raw)) {
+      return Number(raw);
+    }
+    return raw as JwtExpiresIn;
   }
 
   // Register user baru: cek email unik, hash password, simpan user, lalu kembalikan access token.
@@ -106,11 +116,12 @@ export class AuthService {
     const payload = { sub: userId, email, role };
     const jwtSecret = this.getRequiredEnv('JWT_SECRET');
     const jwtRefreshSecret = this.getRequiredEnv('JWT_REFRESH_SECRET');
+    const jwtExpires = this.getJwtExpiration();
 
     const [at, rt] = await Promise.all([
       this.jwtServices.signAsync(payload, {
         secret: jwtSecret,
-        expiresIn: '15m',
+        expiresIn: jwtExpires,
       }),
       this.jwtServices.signAsync(payload, {
         secret: jwtRefreshSecret,
