@@ -1,11 +1,11 @@
 # RevoBank Backend API
 
-Backend API untuk simulasi sistem perbankan menggunakan NestJS + Prisma + PostgreSQL.
+Backend API for a banking system simulation built with NestJS, Prisma, and PostgreSQL.
 
-API ini melayani 2 jenis pengguna:
+This API serves 2 types of users:
 
-- `CUSTOMER`: mengelola akun sendiri, melihat profil, deposit/withdraw/transfer.
-- `ADMIN`: akses lebih luas untuk monitoring data user/account/transaction.
+- `CUSTOMER`: manage their own accounts, view profile, deposit, withdraw, and transfer funds.
+- `ADMIN`: broader access for monitoring users, accounts, and transactions.
 
 ## Tech Stack
 
@@ -18,14 +18,16 @@ API ini melayani 2 jenis pengguna:
 
 ## API Base URL & Docs
 
-- Base URL local: `http://localhost:9000/api/v1`
+- Local base URL: `http://localhost:9000/api/v1`
 - Swagger UI: `http://localhost:9000/docs`
-- Base URL production (Railway): `https://milestone-4-khankhanfauzan-production.up.railway.app/api/v1`
-- Swagger UI production (Railway): `https://milestone-4-khankhanfauzan-production.up.railway.app/docs`
+<!-- - Production base URL (Railway): `https://milestone-4-khankhanfauzan-production.up.railway.app/api/v1` - EXPIRED
+- Production Swagger UI (Railway): `https://milestone-4-khankhanfauzan-production.up.railway.app/docs` - EXPIRED-->
+- Production base URL (Render): `https://milestone-4-khankhanfauzan.onrender.com/api/v1`
+- Production Swagger UI (Render): `https://milestone-4-khankhanfauzan.onrender.com/docs`
 
 ## Standard Response Envelope
 
-Semua response mengikuti format global envelope.
+All responses follow the global envelope format.
 
 ```json
 {
@@ -146,108 +148,108 @@ erDiagram
     Account ||--o{ Transaction : "receives (ToAccount)"
 ```
 
-## Module Overview, DTO, dan Flow
+## Module Overview, DTOs, and Flow
 
 ### 1. Auth Module
 
-File utama:
+Main files:
 
 - `src/auth/auth.controller.ts`
 - `src/auth/auth.service.ts`
 - `src/auth/auth.repository.ts`
 
-DTO:
+DTOs:
 
-- `RegisterDto`: register user baru.
-- `LoginDto`: login user.
+- `RegisterDto`: registers a new user.
+- `LoginDto`: logs in a user.
 
 Flow:
 
-1. Register cek email unik -> hash password -> simpan user -> generate access/refresh token.
-2. Login validasi email/password -> generate access/refresh token.
-3. Refresh token pakai guard `jwt-refresh` -> issue access token baru.
-4. Logout menghapus `hashedRefreshToken` agar refresh token lama invalid.
+1. Register checks for unique email -> hashes password -> saves user -> generates access and refresh tokens.
+2. Login validates email and password -> generates access and refresh tokens.
+3. Refresh token uses the `jwt-refresh` guard -> issues a new access token.
+4. Logout removes `hashedRefreshToken` so the old refresh token becomes invalid.
 
 ### 2. User Profile Module
 
-File utama:
+Main files:
 
 - `src/modules/user-profile/user-profile.controller.ts`
 - `src/modules/user-profile/user-profile.service.ts`
 - `src/modules/user-profile/user-profile.repository.ts`
 
-DTO:
+DTOs:
 
-- `UpdateUserProfileDto`: update field profile non-sensitif (`name`, `phoneNumber`, `dateOfBirth`).
+- `UpdateUserProfileDto`: updates non-sensitive profile fields (`name`, `phoneNumber`, `dateOfBirth`).
 
 Flow:
 
-1. Ambil `userId` dari JWT.
-2. GET profile mengambil data `users` + `user_profiles`.
-3. PATCH profile update `users.name` dan `user_profiles` (upsert).
+1. Get `userId` from JWT.
+2. GET profile retrieves data from `users` and `user_profiles`.
+3. PATCH profile updates `users.name` and `user_profiles` using upsert.
 
 ### 3. Users Module
 
-File utama:
+Main files:
 
 - `src/modules/users/users.controller.ts`
 - `src/modules/users/users.service.ts`
 
-DTO:
+DTOs:
 
-- `CreateUserDto`: create user oleh admin.
-- `UpdateUserDto`: update user (partial).
+- `CreateUserDto`: creates a user by admin.
+- `UpdateUserDto`: updates a user partially.
 
 Flow:
 
-1. Endpoint manajemen user khusus role `ADMIN`.
-2. Operasi yang tersedia: create, list, detail by ID, update, delete.
-3. Password selalu di-hash saat create/update.
-4. Response user tidak menampilkan field sensitif seperti `password` dan `hashedRefreshToken`.
-5. Endpoint `/users` saat ini juga terkena middleware API key.
+1. User management endpoints are restricted to the `ADMIN` role.
+2. Available operations: create, list, detail by ID, update, delete.
+3. Passwords are always hashed during create and update.
+4. User responses do not expose sensitive fields such as `password` and `hashedRefreshToken`.
+5. The `/users` endpoint is currently also protected by API key middleware.
 
 ### 4. Accounts Module
 
-File utama:
+Main files:
 
 - `src/modules/accounts/accounts.controller.ts`
 - `src/modules/accounts/accounts.service.ts`
 - `src/modules/accounts/accounts.repository.ts`
 
-DTO:
+DTOs:
 
-- `CreateAccountDto`: create account (`accountNumber`, optional `balance`).
-- `UpdateAccountDto`: update account (partial).
+- `CreateAccountDto`: creates an account (`accountNumber`, optional `balance`).
+- `UpdateAccountDto`: updates an account partially.
 
 Flow:
 
-1. Customer/admin create account.
-2. Customer hanya bisa lihat account miliknya.
-3. Admin bisa lihat semua account.
-4. `accountNumber` tidak boleh diubah setelah account dibuat.
+1. Customer or admin can create an account.
+2. Customers can only view their own accounts.
+3. Admin can view all accounts.
+4. `accountNumber` cannot be changed after the account is created.
 
 ### 5. Transactions Module
 
-File utama:
+Main files:
 
 - `src/modules/transactions/transactions.controller.ts`
 - `src/modules/transactions/transactions.service.ts`
 - `src/modules/transactions/transactions.repository.ts`
 
-DTO:
+DTOs:
 
-- `DepositDto`: `toAccountId` **atau** `toAccountNumber`, `amount`.
-- `WithdrawDto`: `fromAccountId` **atau** `fromAccountNumber`, `amount`.
-- `TransferDto`: `fromAccountId` **atau** `fromAccountNumber`, serta `toAccountId` **atau** `toAccountNumber`, `amount`.
-- `CreateTransactionDto` dan `UpdateTransactionDto`: disediakan untuk struktur generic.
+- `DepositDto`: `toAccountId` **or** `toAccountNumber`, plus `amount`.
+- `WithdrawDto`: `fromAccountId` **or** `fromAccountNumber`, plus `amount`.
+- `TransferDto`: `fromAccountId` **or** `fromAccountNumber`, and `toAccountId` **or** `toAccountNumber`, plus `amount`.
+- `CreateTransactionDto` and `UpdateTransactionDto`: provided for a generic structure.
 
 Flow:
 
-1. Deposit: validasi account tujuan -> tambah balance -> simpan transaction type `DEPOSIT`.
-2. Withdraw: validasi ownership + saldo cukup -> kurangi balance -> simpan `WITHDRAW`.
-3. Transfer: validasi account sumber/tujuan, account berbeda, saldo cukup -> atomic debit/credit -> simpan `TRANSFER`.
-4. Admin bisa lihat semua transaksi, customer hanya transaksi yang terkait account miliknya.
-5. Untuk endpoint transaksi, kirim **tepat satu** identifier per sisi account: `accountId` atau `accountNumber`.
+1. Deposit: validate destination account -> increase balance -> save transaction with type `DEPOSIT`.
+2. Withdraw: validate ownership and sufficient balance -> decrease balance -> save transaction with type `WITHDRAW`.
+3. Transfer: validate source and destination accounts, ensure they are different, check sufficient balance -> perform atomic debit/credit -> save transaction with type `TRANSFER`.
+4. Admin can view all transactions, while customer can only view transactions related to their own accounts.
+5. For transaction endpoints, send **exactly one** identifier per account side: `accountId` or `accountNumber`.
 
 ## DTO Summary
 
@@ -266,10 +268,10 @@ Flow:
 
 ## Postman Request Samples (All Endpoints)
 
-Gunakan:
+Use:
 
-- Header private endpoint: `Authorization: Bearer <access_token>`
-- Khusus `/users*`: tambahkan `x-api-key: <INTERNAL_API_KEY>`
+- Private endpoint header: `Authorization: Bearer <access_token>`
+- For `/users*` only: add `x-api-key: <INTERNAL_API_KEY>`
 
 ### Auth
 
@@ -433,7 +435,7 @@ Headers:
 }
 ```
 
-Atau by account number:
+Or by account number:
 
 ```json
 {
@@ -453,7 +455,7 @@ Atau by account number:
 }
 ```
 
-Atau by account number:
+Or by account number:
 
 ```json
 {
@@ -474,7 +476,7 @@ Atau by account number:
 }
 ```
 
-Atau by account number:
+Or by account number:
 
 ```json
 {
@@ -500,20 +502,20 @@ Atau by account number:
 pnpm install
 ```
 
-### 2) Setup Environment
+### 2) Set Up Environment
 
-Copy file contoh:
+Copy the example file:
 
 ```bash
 cp .env.example .env
 ```
 
-Lalu isi minimal:
+Then fill in at least:
 
 - `DATABASE_URL`
 - `PORT`
 - `JWT_SECRET`
-- `JWT_REFRESH_SECRET` (disarankan ditambah)
+- `JWT_REFRESH_SECRET` (recommended to add)
 - `JWT_EXPIRATION`
 - `INTERNAL_API_KEY`
 
@@ -565,8 +567,8 @@ pnpm run test:cov
 
 - Build command: `pnpm run build`
 - Start command: `pnpm run start:prod`
-- Pastikan environment variables terisi lengkap.
-- Jalankan migration saat deploy release:
+- Make sure all environment variables are fully configured.
+- Run migration during release deployment:
 
 ```bash
 pnpm prisma migrate deploy
